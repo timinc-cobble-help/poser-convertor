@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <script src="script.js" defer></script>
+    <title>Kt👉JSON Poser</title>
+    <style>
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body class="container">
+    <header>
+      <h1>Cobblemon Kt👉JSON Poser Convertor</h1>
+    </header>
+    <main>
+      <form id="kt-form">
+        <p>
+          Want a particular poser from Cobblemon but don't want to have to look
+          at Kotlin? I gotchu.
+        </p>
+        <p>
+          Work in progress. The more complex ones don't work yet. Some don't
+          have a 1:1 with JSON logic yet.
+        </p>
+        <label>
+          <input placeholder="Pokemon's Kotlin Poser Link" required name="ktSrc" />
+          <small
+            ><a>Click here</a> and dig around in the "gen" folders to find the
+            one you want to convert.</small
+          >
+        </label>
+        <button type="submit">Parse</button>
+      </form>
+    </main>
+  </body>
+</html>
