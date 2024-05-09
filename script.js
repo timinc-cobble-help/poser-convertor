@@ -34,7 +34,6 @@ const collections = {
 function getScale(type, input) {
   const regex = new RegExp(`override va[rl] ${type}Scale = (-*[0-9.]+)F`);
   const result = input.match(regex);
-  console.log(input, result);
   return +result?.[1] || 1;
 }
 
@@ -118,7 +117,7 @@ function getPose(name, input) {
 }
 
 function getPoses(input) {
-  const regex = /lateinit var ([a-z]+): PokemonPose/g;
+  const regex = /lateinit var ([a-zA-Z_]+): PokemonPose/g;
   const poseNames = [...input.matchAll(regex)].map((e) => e[1]);
   return poseNames.reduce(
     (acc, name) => ({ ...acc, [name]: getPose(name, input) }),
@@ -195,6 +194,6 @@ ktForm.addEventListener("submit", async (e) => {
   const ktSrc = ktForm.ktSrc.value;
   const ktFile = await fetchFile(ktSrc);
   const jsonVersion = parseKtModel(ktFile);
-  dlAsFile("test.json", JSON.stringify(jsonVersion, null, 2));
   markNonbusy();
+  dlAsFile("test.json", JSON.stringify(jsonVersion, null, 2));
 });
