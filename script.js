@@ -66,17 +66,64 @@ function getPoseTypes(input) {
   return poses;
 }
 
+function findInsideParentheses(startString) {
+  const result = [];
+  let i = startString.indexOf("(");
+  while (startString[i]) {
+    result.push(startString[i]);
+    if (result.filter(e => e === "(").length > 0 && result.filter(e => e === "(").length === result.filter(e => e === ")").length) {
+      return result.join("");
+    }
+    i++;
+  }
+}
+
+const PLACEHOLDERS = {
+  BipedWalkAnimation: {
+    params: [
+      "periodMultiplier",
+      "amplitudeMultiplier"
+    ],
+    name: "biped_walk"
+  },
+  QuadrupedWalkAnimation: {
+    params: [
+      "periodMultiplier",
+      "amplitudeMultiplier"
+    ],
+    name: "quadruped_walk"
+  },
+  BimanualSwingAnimation: {
+    params: [
+      "swingPeriodMultiplier",
+      "amplitudeMultiplier"
+    ],
+    name: "bimanual_swing"
+  },
+  singleBoneLook: {
+    params: [],
+    name: "look"
+  },
+  bedrock: {
+    params: [],
+    name: "bedrock"
+  }
+}
+
 function getAnimations(input) {
-  const regex = new RegExp(
-    "animations\\s*=\\s*arrayOf\\(((?:[^)(]+|\\((?:[^)(]+|\\([^)(]*\\))*\\))*)\\)"
-  );
-  const matcher = input.match(regex)?.[1];
-  const bedrockMatcher = /(bedrock\("[a-z]+", "[a-z_]+"\))/g;
-  const bedrockMatches = [...matcher.matchAll(bedrockMatcher)].map((match) =>
-    `q.${match[0].replaceAll('"', "'")}`
-  );
-  const daLook = matcher.includes("singleBoneLook") ? ["q.look()"] : [];
-  return bedrockMatches.concat(daLook);
+  const animations = [];
+  const regex = /animations\s*=\s*arrayOf\([\s\S]*/;
+  const matcher = findInsideParentheses(input.match(regex)?.[0]);
+  if (!matcher) return [];
+  console.log(matcher.match(new RegExp(``)));
+
+  // for (const placeholderName in PLACEHOLDERS) {
+  //   if (!matcher.includes(placeholderName)) continue;
+  //   for (const param of PLACEHOLDERS[placeholderName].params) {
+  //   }
+  //   animations.push(`q.${PLACEHOLDERS[placeholderName].name}()`)
+  // }
+  return animations;
 }
 
 function getTransformTicks(input) {
@@ -96,6 +143,9 @@ function getIsBattle(input) {
 }
 
 function getPose(name, input) {
+  const head = input.match(/override val head = getPart\("([a-z]+)"\)/)?.[1] || "head";
+  const parts = { head }
+
   const regex = new RegExp(
     `${name}\\s*=\\s*registerPose\\((?:[^)(]+|\\((?:[^)(]+|\\([^)(]*\\))*\\))*\\)`
   );
@@ -104,7 +154,7 @@ function getPose(name, input) {
   const pose = {
     poseName: name,
     poseTypes: getPoseTypes(matcher),
-    animations: getAnimations(matcher),
+    animations: getAnimations(matcher, parts),
     transformTicks: getTransformTicks(matcher),
     isBattle: getIsBattle(matcher),
   };
@@ -142,7 +192,8 @@ function getCry(input) {
 
 function parseKtModel(input) {
   const result = {
-    head: input.match(/override val head = getPart\("([a-z]+)"\)/)?.[1],
+    // head: input.match(/override val head = getPart\("([a-z]+)"\)/)?.[1],
+    rootBone: input.match(/override val rootPart = root.registerChildWithAllChildren\("([a-z]+)"\)/)[1],
     portraitScale: getScale("portrait", input),
     portraitTranslation: getTranslation("portrait", input),
     profileScale: getScale("profile", input),
@@ -195,5 +246,5 @@ ktForm.addEventListener("submit", async (e) => {
   const jsonVersion = parseKtModel(ktFile);
   markNonbusy();
   console.log(jsonVersion);
-  dlAsFile("test.json", JSON.stringify(jsonVersion, null, 2));
+  // dlAsFile("test.json", JSON.stringify(jsonVersion, null, 2));
 });
