@@ -195,5 +195,5 @@ ktForm.addEventListener("submit", async (e) => {
   const jsonVersion = parseKtModel(ktFile);
   markNonbusy();
   console.log(jsonVersion);
-  // dlAsFile("test.json", JSON.stringify(jsonVersion, null, 2));
+  dlAsFile("test.json", JSON.stringify(jsonVersion, null, 2));
 });
