@@ -39,7 +39,7 @@ function getScale(type, input) {
 
 function getTranslation(type, input) {
   const regex = new RegExp(
-    `override va[rl] ${type}Translation = Vec3d\\((-*[0-9.]+), (-*[0-9.]+), (-*[0-9.]+)\\)`
+    `override va[rl] ${type}Translation = Vec3\\w*\\((-*[0-9.]+), (-*[0-9.]+), (-*[0-9.]+)\\)`
   );
   const result = input.match(regex);
   if (result) {
@@ -68,14 +68,14 @@ function getPoseTypes(input) {
 
 function getAnimations(input) {
   const regex = new RegExp(
-    "idleAnimations\\s*=\\s*arrayOf\\(((?:[^)(]+|\\((?:[^)(]+|\\([^)(]*\\))*\\))*)\\)"
+    "animations\\s*=\\s*arrayOf\\(((?:[^)(]+|\\((?:[^)(]+|\\([^)(]*\\))*\\))*)\\)"
   );
   const matcher = input.match(regex)?.[1];
   const bedrockMatcher = /(bedrock\("[a-z]+", "[a-z_]+"\))/g;
   const bedrockMatches = [...matcher.matchAll(bedrockMatcher)].map((match) =>
-    match[0].replaceAll('"', "")
+    `q.${match[0].replaceAll('"', "'")}`
   );
-  const daLook = matcher.includes("singleBoneLook") ? ["look"] : [];
+  const daLook = matcher.includes("singleBoneLook") ? ["q.look()"] : [];
   return bedrockMatches.concat(daLook);
 }
 
@@ -100,6 +100,7 @@ function getPose(name, input) {
     `${name}\\s*=\\s*registerPose\\((?:[^)(]+|\\((?:[^)(]+|\\([^)(]*\\))*\\))*\\)`
   );
   const matcher = input.match(regex)?.[0];
+  if (!matcher) return null;
   const pose = {
     poseName: name,
     poseTypes: getPoseTypes(matcher),
@@ -117,12 +118,10 @@ function getPose(name, input) {
 }
 
 function getPoses(input) {
-  const regex = /lateinit var ([a-zA-Z_]+): PokemonPose/g;
+  const regex = /lateinit var ([a-zA-Z_]+): Pose/g;
   const poseNames = [...input.matchAll(regex)].map((e) => e[1]);
-  return poseNames.reduce(
-    (acc, name) => ({ ...acc, [name]: getPose(name, input) }),
-    {}
-  );
+  const poseData = poseNames.map(name => getPose(name, input)).filter(e => e);
+  return poseData.reduce((acc, data) => ({ ...acc, [data.poseName]: data }), {});
 }
 
 function getFaint(input) {
@@ -195,5 +194,6 @@ ktForm.addEventListener("submit", async (e) => {
   const ktFile = await fetchFile(ktSrc);
   const jsonVersion = parseKtModel(ktFile);
   markNonbusy();
-  dlAsFile("test.json", JSON.stringify(jsonVersion, null, 2));
+  console.log(jsonVersion);
+  // dlAsFile("test.json", JSON.stringify(jsonVersion, null, 2));
 });
